@@ -25,7 +25,7 @@ public class MySQLConnector {
         if (!isConnected()) {
             String ANSI_RESET = "\u001B[0m";
             try {
-                connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database, username, password);
+                connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?useSSL=false", username, password);
                 String ANSI_GREEN = "\u001B[32m";
                 System.out.println("[PolyMap]" + ANSI_GREEN + " MySQL connection ok!" + ANSI_RESET);
             } catch (SQLException e) {
