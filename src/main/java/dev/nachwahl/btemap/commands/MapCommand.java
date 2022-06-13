@@ -59,7 +59,7 @@ public class MapCommand extends BaseCommand {
 
     @Default
     public static void onDefault(CommandSender sender){
-        BTEMap.getPlugin(BTEMap.class).sendPluginMessage("nwarp", (Player) sender,sender.getName(),"Map");
+        BTEMap.getPlugin(BTEMap.class).sendPluginMessage("teleportPlayerToServer", (Player) sender,sender.getName(),"Map");
     }
 
     @HelpCommand
