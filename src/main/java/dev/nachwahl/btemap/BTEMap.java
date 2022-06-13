@@ -2,6 +2,8 @@ package dev.nachwahl.btemap;
 
 
 import co.aikar.commands.PaperCommandManager;
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import dev.nachwahl.btemap.commands.MapCommand;
 import dev.nachwahl.btemap.database.MySQLConnector;
 import dev.nachwahl.btemap.listeners.LeaveEvent;
@@ -110,6 +112,17 @@ public final class BTEMap extends JavaPlugin {
     }
 
 
+    public void sendPluginMessage(String command, Player player, String... message) {
+        //noinspection UnstableApiUsage
+        ByteArrayDataOutput output = ByteStreams.newDataOutput();
+        output.writeUTF(command);
+        for (String part : message) {
+            output.writeUTF(part);
+        }
+
+        player.sendPluginMessage(this, "bteplugin", output.toByteArray());
+
+    }
 }
 
 

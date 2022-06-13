@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.nachwahl.btemap.BTEMap;
 import dev.nachwahl.btemap.projection.GeographicProjection;
 import dev.nachwahl.btemap.projection.ModifiedAirocean;
 import dev.nachwahl.btemap.projection.ScaleProjection;
@@ -52,10 +53,10 @@ public class SocketIO {
                     try {
                         Player player = Bukkit.getServer().getPlayer(UUID.fromString(uuid));
 
-                        Location loc = new Location(player.getWorld(), coords[0], player.getWorld().getHighestBlockYAt((int) coords[0], (int) coords[1]), coords[1]);
                         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-                        player.teleport(loc);
-                        //player.performCommand("/tpll " + coords[0] + ", " + coords[1]);
+
+                        String coordinates = coords[0] + ", " + coords[1];
+                        BTEMap.getPlugin(BTEMap.class).sendPluginMessage("tpll",player,player.getName(),coordinates);
 
                     } catch (Exception ignored) { }
 
