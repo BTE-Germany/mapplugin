@@ -4,13 +4,20 @@ package dev.nachwahl.btemap;
 import co.aikar.commands.PaperCommandManager;
 import dev.nachwahl.btemap.commands.MapCommand;
 import dev.nachwahl.btemap.database.MySQLConnector;
+import dev.nachwahl.btemap.listeners.LeaveEvent;
+import dev.nachwahl.btemap.projection.GeographicProjection;
+import dev.nachwahl.btemap.projection.ModifiedAirocean;
+import dev.nachwahl.btemap.projection.ScaleProjection;
 import dev.nachwahl.btemap.utils.FileBuilder;
 import dev.nachwahl.btemap.utils.GetLocation;
 import dev.nachwahl.btemap.utils.SocketIO;
-import net.buildtheearth.terraplusplus.projection.OutOfProjectionBoundsException;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public final class BTEMap extends JavaPlugin {
@@ -27,7 +34,7 @@ public final class BTEMap extends JavaPlugin {
                 .addDefault("mysql.database", "map")
                 .addDefault("mysql.username", "root")
                 .addDefault("mysql.password", "")
-                .addDefault("hostname","localhost")
+                .addDefault("hostname", "localhost")
                 .addDefault("port", 8899)
                 .addDefault("token", "")
                 .copyDefaults(true).save();
@@ -38,18 +45,25 @@ public final class BTEMap extends JavaPlugin {
         manager.enableUnstableAPI("help");
         manager.registerCommand(new MapCommand());
 
-        this.socketIO = new SocketIO(dbConfig.getString("hostname"),dbConfig.getInt("port"),dbConfig.getString("token"));
-        //GetLocation loc = new GetLocation(this);
+        Bukkit.getPluginManager().registerEvents(new LeaveEvent(this), this);
+
+        this.socketIO = new SocketIO(dbConfig.getString("hostname"), dbConfig.getInt("port"), dbConfig.getString("token"));
+        GetLocation loc = new GetLocation();
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
-            getLogger().log(Level.INFO, "Sending data");
 
-            try {
-                this.socketIO.sendPlayerLocationUpdate(String.valueOf(GetLocation.getAllLocations()));
-            } catch (OutOfProjectionBoundsException e) {
-                e.printStackTrace();
+
+            ArrayList<String> players = new ArrayList<String>();
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                Location location = p.getLocation();
+                UUID uuid = p.getUniqueId();
+                double[] coordinates = toGeo(location.getX() * 1, location.getZ() * 1);
+                String packet = uuid.toString() + ";" + coordinates[0] + ";" + coordinates[1] + ";" + p.getName();
+                players.add(packet);
             }
+            this.socketIO.sendPlayerLocationUpdate(String.valueOf(players));
 
-        }, 0L, 2L);
+
+        }, 0L, 20L);
     }
 
     public MySQLConnector getSqlConnector() {
@@ -64,4 +78,38 @@ public final class BTEMap extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
     }
+
+    public SocketIO getSocketIO() {
+        return socketIO;
+    }
+
+    private static final GeographicProjection projection = new ModifiedAirocean();
+    private static final GeographicProjection uprightProj = GeographicProjection.orientProjection(projection, GeographicProjection.Orientation.upright);
+    private static final ScaleProjection scaleProj = new ScaleProjection(uprightProj, 7318261.522857145, 7318261.522857145);
+
+    /**
+     * Gets the geographical location from in-game coordinates
+     *
+     * @param x X-Axis in-game
+     * @param z Z-Axis in-game
+     * @return The geographical location (Long, Lat)
+     */
+    public static double[] toGeo(double x, double z) {
+        return scaleProj.toGeo(x, z);
+    }
+
+    /**
+     * Gets in-game coordinates from geographical location
+     *
+     * @param lon Geographical Longitude
+     * @param lat Geographic Latitude
+     * @return The in-game coordinates (x, z)
+     */
+    public static double[] fromGeo(double lon, double lat) {
+        return scaleProj.fromGeo(lon, lat);
+    }
+
+
 }
+
+

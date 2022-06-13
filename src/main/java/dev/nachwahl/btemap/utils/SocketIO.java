@@ -1,12 +1,31 @@
 package dev.nachwahl.btemap.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import dev.nachwahl.btemap.projection.GeographicProjection;
+import dev.nachwahl.btemap.projection.ModifiedAirocean;
+import dev.nachwahl.btemap.projection.ScaleProjection;
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 
+import java.lang.reflect.Array;
 import java.net.URISyntaxException;
+import java.util.Locale;
+import java.util.UUID;
 
 import static java.util.Collections.singletonMap;
 
+class TeleportData {
+    String uuid;
+    double[] coords;
+}
 public class SocketIO {
 
     Socket socket;
@@ -22,10 +41,30 @@ public class SocketIO {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+
+        this.socket.on("teleportPlayer", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                TeleportData teleportData = new Gson().fromJson(args[0].toString(), TeleportData.class);
+                String uuid = teleportData.uuid;
+                double[] coords = teleportData.coords;
+                if(coords.length == 2) {
+                    try {
+                        Player player = Bukkit.getServer().getPlayer(UUID.fromString(uuid));
+
+                        Location loc = new Location(player.getWorld(), coords[0], player.getWorld().getHighestBlockYAt((int) coords[0], (int) coords[1]), coords[1]);
+                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+                        player.teleport(loc);
+                        //player.performCommand("/tpll " + coords[0] + ", " + coords[1]);
+
+                    } catch (Exception ignored) { }
+
+                }
+            }
+        });
     }
 
     public void sendPlayerLocationUpdate(String data) {
-        System.out.println("Update: "+data);
         this.socket.emit("playerLocationUpdate", data);
     }
 
@@ -34,6 +73,8 @@ public class SocketIO {
     }
 
 
-
+    public void sendPlayerDisconnect(UUID uniqueId) {
+        this.socket.emit("playerDisconnect", uniqueId.toString());
+    }
 
 }
