@@ -30,6 +30,7 @@ public final class BTEMap extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        this.getServer().getMessenger().registerOutgoingPluginChannel(this, "bteplugin");
         dbConfig = new FileBuilder("plugins/PolyMap", "mysql.yml")
                 .addDefault("mysql.host", "localhost")
                 .addDefault("mysql.port", 3306)
