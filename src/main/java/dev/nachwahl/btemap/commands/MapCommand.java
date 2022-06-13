@@ -57,6 +57,11 @@ public class MapCommand extends BaseCommand {
         });
     }
 
+    @Default
+    public static void onDefault(CommandSender sender){
+        BTEMap.getPlugin(BTEMap.class).sendPluginMessage("nwarp", (Player) sender,sender.getName(),"Map");
+    }
+
     @HelpCommand
     public static void onHelp(CommandSender sender, CommandHelp help) {
         sender.sendMessage("§6BTE Germany Map");
