@@ -79,7 +79,11 @@ public final class BTEMap extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        if(this.socketIO != null) {
+            this.socketIO.closeSocket();
+        }
+
+        this.getSqlConnector().disconnect();
     }
 
     public SocketIO getSocketIO() {

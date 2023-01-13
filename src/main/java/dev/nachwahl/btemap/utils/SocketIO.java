@@ -35,7 +35,6 @@ public class SocketIO {
                 .setAuth(singletonMap("token", token))
                 .build();
 
-
         try {
             this.socket = IO.socket(host+":"+port, options);
             this.socket.connect();
@@ -72,7 +71,6 @@ public class SocketIO {
     public void closeSocket() {
         this.socket.close();
     }
-
 
     public void sendPlayerDisconnect(UUID uniqueId) {
         this.socket.emit("playerDisconnect", uniqueId.toString());

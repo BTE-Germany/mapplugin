@@ -1,3 +1,5 @@
 name: BTEMapV2
 version: '${project.version}'
 main: dev.nachwahl.btemap.BTEMap
+depend:
+  - WorldEdit
