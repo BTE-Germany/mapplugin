@@ -3,19 +3,28 @@ package dev.nachwahl.btemap.commands;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.CommandHelp;
 import co.aikar.commands.annotation.*;
+import co.aikar.util.Counter;
+import com.fastasyncworldedit.core.function.mask.AirMask;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import com.sk89q.worldedit.*;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.function.block.Counter;
+
+import com.sk89q.worldedit.IncompleteRegionException;
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.function.RegionFunction;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
+import com.sk89q.worldedit.math.BlockVector2;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.math.Vector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.regions.RegionOperationException;
+import com.sk89q.worldedit.util.Countable;
 import dev.nachwahl.btemap.BTEMap;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
 
 import javax.xml.transform.Result;
 import java.io.BufferedReader;
@@ -101,7 +110,7 @@ public class MapCommand extends BaseCommand {
             sender.sendMessage("§b§lBTEG §7» §cPlease select a region via WorldEdit first.");
             return;
         }
-        List<BlockVector2D> poly = null;
+        List<BlockVector2> poly = null;
         try {
             poly = region.polygonize(50);
         } catch (IllegalArgumentException e) {
@@ -113,7 +122,7 @@ public class MapCommand extends BaseCommand {
 
 
         String coords = "[";
-        for (BlockVector2D vector2D : poly) {
+        for (BlockVector2 vector2D : poly) {
             System.out.println(BTEMap.toGeo(vector2D.getBlockX(), vector2D.getBlockZ())[1] + ", " + BTEMap.toGeo(vector2D.getBlockX(), vector2D.getBlockZ())[0]);
             System.out.println(Arrays.toString(BTEMap.toGeo(vector2D.getBlockX(), vector2D.getBlockZ())));
             lat = BTEMap.toGeo(vector2D.getBlockX(), vector2D.getBlockZ())[1];
@@ -156,7 +165,7 @@ public class MapCommand extends BaseCommand {
         sm.getRegionSelector(WorldEdit.getInstance().getSessionManager().findByName(player.getName()).getSelectionWorld()).clear();
 
         try {
-            region.contract(new Vector().setY(region.getHeight()-1));
+            region.contract(Vector3.at(0, region.getHeight()-1, 0).toBlockPoint());
         } catch (RegionOperationException e) {
             e.printStackTrace();
         }
@@ -166,9 +175,10 @@ public class MapCommand extends BaseCommand {
         String finalCity = city;
         Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
             UUID uuid = UUID.randomUUID();
-            Counter counter = new Counter();
-            RegionVisitor visitor = new RegionVisitor(finalRegion, counter);
-            Operations.completeBlindly(visitor);
+
+            // not sure if this is the right way to do it
+            int counter = WorldEdit.getInstance().newEditSessionBuilder().build().countBlocks(finalRegion, new AirMask(finalRegion.getWorld()));
+
             try {
                 PreparedStatement checkUserPs = plugin.getSqlConnector().getConnection().prepareStatement("SELECT * FROM User WHERE minecraftUUID = ?");
                 checkUserPs.setString(1, player.getUniqueId().toString());
@@ -182,7 +192,7 @@ public class MapCommand extends BaseCommand {
                     ps.setString(4, player.getUniqueId().toString());
                     ps.setString(5,finalCoords);
                     ps.setString(6, finalCity);
-                    ps.setInt(7, counter.getCount());
+                    ps.setInt(7, counter);
                     ps.setString(8, checkUserRs.getString("id"));
                     ps.executeUpdate();
                 } else {
@@ -193,7 +203,7 @@ public class MapCommand extends BaseCommand {
                     ps.setString(4, player.getUniqueId().toString());
                     ps.setString(5,finalCoords);
                     ps.setString(6, finalCity);
-                    ps.setInt(7, counter.getCount());
+                    ps.setInt(7, counter);
                     ps.executeUpdate();
                 }
 
