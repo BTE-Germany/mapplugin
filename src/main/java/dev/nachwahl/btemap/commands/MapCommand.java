@@ -11,7 +11,11 @@ import com.google.gson.JsonParser;
 import com.sk89q.worldedit.IncompleteRegionException;
 import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.extent.Extent;
+import com.sk89q.worldedit.extent.NullExtent;
 import com.sk89q.worldedit.function.RegionFunction;
+import com.sk89q.worldedit.function.mask.BlockTypeMask;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.function.visitor.RegionVisitor;
 import com.sk89q.worldedit.math.BlockVector2;
@@ -162,7 +166,7 @@ public class MapCommand extends BaseCommand {
             e.printStackTrace();
         }
 
-        sm.getRegionSelector(WorldEdit.getInstance().getSessionManager().findByName(player.getName()).getSelectionWorld()).clear();
+
 
         try {
             region.contract(Vector3.at(0, region.getHeight()-1, 0).toBlockPoint());
@@ -175,10 +179,12 @@ public class MapCommand extends BaseCommand {
         String finalCity = city;
         Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
             UUID uuid = UUID.randomUUID();
+            LocalSession localSession = WorldEdit.getInstance().getSessionManager().findByName(player.getName());
 
             // not sure if this is the right way to do it
-            int counter = WorldEdit.getInstance().newEditSessionBuilder().build().countBlocks(finalRegion, new AirMask(finalRegion.getWorld()));
-
+            // not sure if this is the right way to do it
+            int counter = finalRegion.getWorld().countBlocks(finalRegion, new AirMask(new NullExtent()));
+            player.sendMessage("§b§lBTEG §7» §aYour region has " + counter + " blocks");
             try {
                 PreparedStatement checkUserPs = plugin.getSqlConnector().getConnection().prepareStatement("SELECT * FROM User WHERE minecraftUUID = ?");
                 checkUserPs.setString(1, player.getUniqueId().toString());
@@ -211,6 +217,7 @@ public class MapCommand extends BaseCommand {
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
             }
+            sm.getRegionSelector(localSession.getSelectionWorld()).clear();
             sender.sendMessage("§b§lBTEG §7» Your region was created successfully and is now visible on the map.");
             sender.sendMessage("§b§lBTEG §7» You can see your region by clicking on this link: https://map.bte-germany.de/?region=" + uuid.toString() + "&details=true");
         });
