@@ -11,8 +11,10 @@ import dev.nachwahl.btemap.projection.GeographicProjection;
 import dev.nachwahl.btemap.projection.ModifiedAirocean;
 import dev.nachwahl.btemap.projection.ScaleProjection;
 import dev.nachwahl.btemap.utils.FileBuilder;
-import dev.nachwahl.btemap.utils.GetLocation;
 import dev.nachwahl.btemap.utils.SocketIO;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -20,13 +22,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.UUID;
-import java.util.logging.Level;
 
 public final class BTEMap extends JavaPlugin {
 
     private MySQLConnector sqlConnector;
     private FileBuilder dbConfig;
     private SocketIO socketIO;
+    public static final Component MSG_PREFIX = Component.text("BTEG »",
+            NamedTextColor.AQUA, TextDecoration.BOLD).append(Component.text("» ", NamedTextColor.GRAY));
 
     @Override
     public void onEnable() {
@@ -51,11 +54,9 @@ public final class BTEMap extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new LeaveEvent(this), this);
 
         this.socketIO = new SocketIO(dbConfig.getString("hostname"), dbConfig.getInt("port"), dbConfig.getString("token"));
-        GetLocation loc = new GetLocation();
         Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
 
-
-            ArrayList<String> players = new ArrayList<String>();
+            ArrayList<String> players = new ArrayList<>();
             for (Player p : Bukkit.getOnlinePlayers()) {
                 Location location = p.getLocation();
                 UUID uuid = p.getUniqueId();
