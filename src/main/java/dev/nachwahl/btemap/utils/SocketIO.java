@@ -1,24 +1,16 @@
 package dev.nachwahl.btemap.utils;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import dev.nachwahl.btemap.BTEMap;
-import dev.nachwahl.btemap.projection.GeographicProjection;
-import dev.nachwahl.btemap.projection.ModifiedAirocean;
-import dev.nachwahl.btemap.projection.ScaleProjection;
 import io.socket.client.IO;
 import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Array;
 import java.net.URISyntaxException;
-import java.util.Locale;
 import java.util.UUID;
 
 import static java.util.Collections.singletonMap;
@@ -42,26 +34,24 @@ public class SocketIO {
             e.printStackTrace();
         }
 
-        this.socket.on("teleportPlayer", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                TeleportData teleportData = new Gson().fromJson(args[0].toString(), TeleportData.class);
-                String uuid = teleportData.uuid;
-                double[] coords = teleportData.coords;
-                if(coords.length == 2) {
-                    try {
-                        Player player = Bukkit.getServer().getPlayer(UUID.fromString(uuid));
+        this.socket.on("teleportPlayer",
+                args -> {
+                    TeleportData teleportData = new Gson().fromJson(args[0].toString(), TeleportData.class);
+                    String uuid = teleportData.uuid;
+                    double[] coords = teleportData.coords;
+                    if(coords.length == 2) {
+                        try {
+                            Player player = Bukkit.getServer().getPlayer(UUID.fromString(uuid));
 
-                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+                            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
 
-                        String coordinates = coords[0] + ", " + coords[1];
-                        BTEMap.getPlugin(BTEMap.class).sendPluginMessage("tpll",player,player.getName(),coordinates);
+                            String coordinates = coords[0] + ", " + coords[1];
+                            JavaPlugin.getPlugin(BTEMap.class).sendPluginMessage("tpll",player,player.getName(),coordinates);
 
-                    } catch (Exception ignored) { }
+                        } catch (Exception ignored) { /* ignored */ }
 
-                }
-            }
-        });
+                    }
+                });
     }
 
     public void sendPlayerLocationUpdate(String data) {
@@ -72,8 +62,7 @@ public class SocketIO {
         this.socket.close();
     }
 
-    public void sendPlayerDisconnect(UUID uniqueId) {
+    public void sendPlayerDisconnect(@NotNull UUID uniqueId) {
         this.socket.emit("playerDisconnect", uniqueId.toString());
     }
-
 }

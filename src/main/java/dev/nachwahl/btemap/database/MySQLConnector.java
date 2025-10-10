@@ -50,7 +50,7 @@ public class MySQLConnector {
 
     public boolean isConnected() {
         try {
-            return (connection != null && (!connection.isClosed()));
+            return (connection != null && !connection.isClosed() && connection.isValid(1000));
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
