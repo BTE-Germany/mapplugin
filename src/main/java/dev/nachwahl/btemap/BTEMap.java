@@ -58,10 +58,11 @@ public final class BTEMap extends JavaPlugin {
 
             ArrayList<String> players = new ArrayList<>();
             for (Player p : Bukkit.getOnlinePlayers()) {
+                if (p.hasPermission("map.ignore")) continue;
                 Location location = p.getLocation();
                 UUID uuid = p.getUniqueId();
                 double[] coordinates = toGeo(location.getX() * 1, location.getZ() * 1);
-                String packet = uuid.toString() + ";" + coordinates[0] + ";" + coordinates[1] + ";" + p.getName();
+                String packet = uuid + ";" + coordinates[0] + ";" + coordinates[1] + ";" + p.getName();
                 players.add(packet);
             }
             this.socketIO.sendPlayerLocationUpdate(String.valueOf(players));
