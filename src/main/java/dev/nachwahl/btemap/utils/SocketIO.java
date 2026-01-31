@@ -46,7 +46,7 @@ public class SocketIO {
                             player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
 
                             String coordinates = coords[0] + ", " + coords[1];
-                            JavaPlugin.getPlugin(BTEMap.class).sendPluginMessage("tpll",player,player.getName(),coordinates);
+                            JavaPlugin.getPlugin(BTEMap.class).sendPluginMessage("tpll", player, coordinates);
 
                         } catch (Exception ignored) { /* ignored */ }
 

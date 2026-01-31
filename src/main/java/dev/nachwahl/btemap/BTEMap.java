@@ -33,7 +33,7 @@ public final class BTEMap extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        this.getServer().getMessenger().registerOutgoingPluginChannel(this, "bungeecord:bteplugin");
+        this.getServer().getMessenger().registerOutgoingPluginChannel(this, "bteg:teleportation");
         dbConfig = new FileBuilder("plugins/PolyMap", "mysql.yml")
                 .addDefault("mysql.host", "localhost")
                 .addDefault("mysql.port", 3306)
@@ -122,12 +122,17 @@ public final class BTEMap extends JavaPlugin {
     public void sendPluginMessage(String command, Player player, String... message) {
         //noinspection UnstableApiUsage
         ByteArrayDataOutput output = ByteStreams.newDataOutput();
-        output.writeUTF(command);
-        for (String part : message) {
-            output.writeUTF(part);
-        }
+        output.writeUTF("NORMAL");
+        output.writeUTF("execute_command");
+        output.writeUTF(player.getUniqueId().toString());
 
-        player.sendPluginMessage(this, "bungeecord:bteplugin", output.toByteArray());
+        StringBuilder stringBuilder = new StringBuilder(command);
+        for (String part : message) {
+            stringBuilder.append(" ").append(part);
+        }
+        output.writeUTF(stringBuilder.toString());
+
+        player.sendPluginMessage(this, "bteg:teleportation", output.toByteArray());
 
     }
 }
