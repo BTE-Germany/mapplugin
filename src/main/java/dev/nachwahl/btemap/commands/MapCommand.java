@@ -137,9 +137,10 @@ public class MapCommand extends BaseCommand {
 
         URI url;
         try {
-            url = new URI("https://nominatim.openstreetmap.org/reverse.php?osm_type=N&format=json&zoom=18&lon=" + lon + "&accept-language=de&lat=" + lat);
+            url = new URI("https://nominatim.openstreetmap.org/reverse?osm_type=N&format=json&zoom=18&lon=" + lon + "&accept-language=de&lat=" + lat);
             HttpURLConnection connection = (HttpURLConnection) url.toURL().openConnection();
-            connection.setRequestProperty("accept", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("User-Agent", "BTE Germany Mapplugin");
             Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
             StringBuilder response = new StringBuilder();
             for (int i; (i = reader.read()) >= 0;)
